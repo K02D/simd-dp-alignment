@@ -11,7 +11,7 @@ memory_deltas_1=()
 times_2=()
 memory_deltas_2=()
 
-for test in ssw_test_2 ssw_test_1; do
+for test in ssw_test_1 ssw_test_2; do
     echo "Running benchmark for $test"
     for i in $(seq 1 $NUM_TRIALS); do
         # Run the command and capture its output
@@ -31,9 +31,6 @@ for test in ssw_test_2 ssw_test_1; do
             times_2+=($time)
             memory_deltas_2+=($memory_delta)
         fi
-
-        # Add a blank line between runs
-        echo ""
     done
 done
 
