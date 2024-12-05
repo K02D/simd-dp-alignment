@@ -4,7 +4,6 @@ CFLAGS += -Wall -pipe -O2
 #CFLAGS += -Wall -pipe -g -fsanitize=address	# for debug
 CXXFLAGS := $(CFLAGS)
 LOBJS = ssw.o
-LCPPOBJS = ssw_cpp.o
 PROG = ssw_test
 LIB = libssw.so
 JAVA_JAR = ssw.jar
@@ -50,8 +49,5 @@ endif
 ssw.o: ssw.c ssw.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-ssw_cpp.o: ssw_cpp.cpp ssw_cpp.h ssw.h
-	$(CXX) -c -o $@ $< $(CXXFLAGS)
-
 clean:
-	-rm -f $(LOBJS) $(LCPPOBJS) $(PROG) $(LIB) $(JAVA_LIB) $(JAVA_JAR) $(JAVA_OBJ) *~
+	-rm -f $(LOBJS) $(PROG) $(LIB) $(JAVA_LIB) $(JAVA_JAR) $(JAVA_OBJ) *~
