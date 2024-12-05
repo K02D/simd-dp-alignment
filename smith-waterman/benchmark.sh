@@ -3,7 +3,7 @@
 make
 
 # Number of trials
-NUM_TRIALS=5
+NUM_TRIALS=2
 
 # Arrays to store the CPU times and memory deltas
 times_1=()
@@ -11,11 +11,11 @@ memory_deltas_1=()
 times_2=()
 memory_deltas_2=()
 
-for test in ssw_test_1 ssw_test_2; do
+for test in ssw_test_2 ssw_test_1; do
     echo "Running benchmark for $test"
     for i in $(seq 1 $NUM_TRIALS); do
         # Run the command and capture its output
-        output=$(./$test Homo_sapiens.GRCh38.dna_rm.chromosome.22.fa query.fa s 2>&1)
+        output=$(./$test Homo_sapiens.GRCh38.dna_rm.chromosome.15.fa query.fa s 2>&1)
 
         # Extract the CPU time using grep and awk
         time=$(echo "$output" | grep "CPU time:" | awk '{print $3}')
