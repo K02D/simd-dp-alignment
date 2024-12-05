@@ -1,9 +1,8 @@
 #!/bin/bash
 
-make
 
 # Number of trials
-NUM_TRIALS=2
+NUM_TRIALS=100
 
 # Arrays to store the CPU times and memory deltas
 times_1=()
