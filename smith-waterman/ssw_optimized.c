@@ -162,32 +162,31 @@ const uint8_t encoded_ops[] = {
 
 /* Generate query profile rearrange query sequence & calculate the weight of
  * match/mismatch. */
-static __m128i *
-qP_byte(const int8_t *read_num, const int8_t *mat, const int32_t readLen,
-        const int32_t n, /* the edge length of the squre matrix mat */
-        uint8_t bias) {
+// Optimization 5: SIMD-optimized profile generation
+static __m128i *qP_byte_optimized(const int8_t *read_num, const int8_t *mat,
+                                  const int32_t readLen, const int32_t n,
+                                  uint8_t bias) {
 
-  int32_t segLen =
-      (readLen + 15) /
-      16; /* Split the 128 bit register into 16 pieces.
-                                 Each piece is 8 bit. Split the read into 16
-             segments. Calculat 16 segments in parallel.
-                               */
-  __m128i *vProfile = (__m128i *)malloc(n * segLen * sizeof(__m128i));
-  int8_t *t = (int8_t *)vProfile;
-  int32_t nt, i, j, segNum;
+  const int32_t segLen = (readLen + 15) / 16;
+  __m128i *vProfile = (__m128i *)_mm_malloc(n * segLen * sizeof(__m128i), 16);
 
-  /* Generate query profile rearrange query sequence & calculate the weight of
-   * match/mismatch */
-  for (nt = 0; LIKELY(nt < n); nt++) {
-    for (i = 0; i < segLen; i++) {
-      j = i;
-      for (segNum = 0; LIKELY(segNum < 16); segNum++) {
-        *t++ = j >= readLen ? bias : mat[nt * n + read_num[j]] + bias;
+// Optimization 5.1: Vectorized profile generation
+#pragma omp parallel for schedule(static)
+  for (int32_t nt = 0; nt < n; nt++) {
+    int8_t *t = (int8_t *)(vProfile + nt * segLen);
+    for (int32_t i = 0; i < segLen; i++) {
+      int32_t j = i;
+      __m128i v_profile = _mm_setzero_si128();
+
+      for (int32_t segNum = 0; segNum < 16; segNum++) {
+        int8_t value = j >= readLen ? bias : mat[nt * n + read_num[j]] + bias;
+        ((int8_t *)&v_profile)[segNum] = value;
         j += segLen;
       }
+      _mm_store_si128((__m128i *)(t + i * 16), v_profile);
     }
   }
+
   return vProfile;
 }
 
@@ -197,20 +196,19 @@ qP_byte(const int8_t *read_num, const int8_t *mat, const int32_t readLen,
    best alignment, etc. Gap begin and gap extension are different. wight_match >
    0, all other weights < 0. The returned positions are 0-based.
  */
-static alignment_end *
-sw_sse2_byte(const int8_t *ref,
-             int8_t ref_dir, // 0: forward ref; 1: reverse ref
-             int32_t refLen, int32_t readLen,
-             const uint8_t weight_gapO, /* will be used as - */
-             const uint8_t weight_gapE, /* will be used as - */
-             const __m128i *vProfile,
-             uint8_t
-                 terminate, /* the best alignment score: used to terminate
-                                               the matrix calculation when
-                               locating the alignment beginning point. If this
-                               score is set to 0, it will not be used */
-             uint8_t bias,  /* Shift 0 point to a positive value. */
-             int32_t maskLen) {
+static alignment_end *sw_sse2_byte(
+    const int8_t *ref,
+    int8_t ref_dir, // 0: forward ref; 1: reverse ref
+    int32_t refLen, int32_t readLen,
+    const uint8_t weight_gapO, /* will be used as - */
+    const uint8_t weight_gapE, /* will be used as - */
+    const __m128i *vProfile,
+    uint8_t terminate, /* the best alignment score: used to terminate
+                                          the matrix calculation when
+                          locating the alignment beginning point. If this
+                          score is set to 0, it will not be used */
+    uint8_t bias,      /* Shift 0 point to a positive value. */
+    int32_t maskLen) {
 
 // Put the largest number of the 16 numbers in vm into m.
 #define max16(m, vm)                                                           \
@@ -845,7 +843,7 @@ s_profile *ssw_init(const int8_t *read, const int32_t readLen,
     bias = abs(bias);
 
     p->bias = bias;
-    p->profile_byte = qP_byte(read, mat, readLen, n, bias);
+    p->profile_byte = qP_byte_optimized(read, mat, readLen, n, bias);
   }
   if (score_size == 1 || score_size == 2)
     p->profile_word = qP_word(read, mat, readLen, n);
@@ -937,8 +935,8 @@ s_align *ssw_align(
   // Find the beginning position of the best alignment.
   read_reverse = seq_reverse(prof->read, r->read_end1);
   if (word == 0) {
-    vP =
-        qP_byte(read_reverse, prof->mat, r->read_end1 + 1, prof->n, prof->bias);
+    vP = qP_byte_optimized(read_reverse, prof->mat, r->read_end1 + 1, prof->n,
+                           prof->bias);
     bests_reverse =
         sw_sse2_byte(ref, 1, r->ref_end1 + 1, r->read_end1 + 1, weight_gapO,
                      weight_gapE, vP, r->score1, prof->bias, maskLen);
