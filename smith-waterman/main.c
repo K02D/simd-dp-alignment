@@ -591,8 +591,8 @@ int main(int argc, char *const argv[]) {
   end = clock();
   cpu_time = ((float)(end - start)) / CLOCKS_PER_SEC;
   fprintf(stderr, "CPU time: %f seconds\n", cpu_time);
-  fprintf(stderr, "Memory usage:\n");
-  fprintf(stderr, "  Delta (Peak - Initial):   %ld MB\n", mem_peak - mem_start);
+  fprintf(stderr, "Memory Usage Delta (Peak - Initial):   %ld MB\n",
+          mem_peak - mem_start);
 
   if (num_rc) {
     free(num_rc);
