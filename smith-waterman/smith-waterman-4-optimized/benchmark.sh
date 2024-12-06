@@ -11,7 +11,7 @@ memory_deltas_2=()
 for test in ssw_test_1 ssw_test_2; do
     echo "Running benchmark for $test"
     for i in $(seq 1 $NUM_TRIALS); do
-        output=$(./$test Homo_sapiens.GRCh38.dna_rm.chromosome.15.fa query.fa s 2>&1)
+        output=$(./$test ../Homo_sapiens.GRCh38.dna_rm.chromosome.15.fa query.fa s 2>&1)
 
         time=$(echo "$output" | grep "CPU time:" | awk '{print $3}')
 
