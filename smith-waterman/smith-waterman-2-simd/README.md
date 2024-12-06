@@ -24,8 +24,7 @@ g++ -std=c++17 -march=armv8-a+simd smith-waterman-protein-simd.cpp -o smith_wate
 # Running for protein
 
 ```
-./smith_waterman_protein_simd reference.fa balifam100.fa
-./smith_waterman_protein_simd reference.fa balifam1000.fa
-./smith_waterman_protein_simd reference.fa balifam10000.fa
-
+./smith_waterman_protein_simd protein-ref.fa protein-input100.fa
+./smith_waterman_protein_simd protein-ref.fa protein-input1000.fa
+./smith_waterman_protein_simd protein-ref.fa protein-input10000.fa
 ```

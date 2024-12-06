@@ -24,8 +24,7 @@ g++ smith-waterman-protein.cpp -std=c++17 -pedantic -Wall -Wextra -o smith_water
 # Running for protein
 
 ```
-./smith_waterman_protein reference.fa balifam100.fa
-./smith_waterman_protein reference.fa balifam1000.fa
-./smith_waterman_protein reference.fa balifam10000.fa
-
+./smith_waterman_protein protein-ref.fa protein-input100.fa
+./smith_waterman_protein protein-ref.fa protein-input1000.fa
+./smith_waterman_protein protein-ref.fa protein-input10000.fa
 ```

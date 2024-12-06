@@ -162,7 +162,6 @@ const uint8_t encoded_ops[] = {
 
 /* Generate query profile rearrange query sequence & calculate the weight of
  * match/mismatch. */
-// Optimization: SIMD-optimized profile generation
 static __m128i *qP_byte_optimized(const int8_t *read_num, const int8_t *mat,
                                   const int32_t readLen, const int32_t n,
                                   uint8_t bias) {
@@ -281,49 +280,90 @@ static alignment_end *sw_sse2_byte(
     pvHLoad = pvHStore;
     pvHStore = pv;
 
-    /* inner loop to process the query sequence */
+    // /* inner loop to process the query sequence */
+    // for (j = 0; LIKELY(j < segLen); ++j)
+    // {
+    //     vH = _mm_adds_epu8(vH, _mm_load_si128(vP + j));
+    //     vH = _mm_subs_epu8(vH, vBias); /* vH will be always > 0 */
+
+    //     /* Get max from vH, vE and vF. */
+    //     e = _mm_load_si128(pvE + j);
+    //     vH = _mm_max_epu8(vH, e);
+    //     vH = _mm_max_epu8(vH, vF);
+    //     vMaxColumn = _mm_max_epu8(vMaxColumn, vH);
+
+    //     /* Save vH values. */
+    //     _mm_store_si128(pvHStore + j, vH);
+
+    //     /* Update vE value. */
+    //     vH = _mm_subs_epu8(vH, vGapO); /* saturation arithmetic, result >= 0
+    //     */ e = _mm_subs_epu8(e, vGapE); e = _mm_max_epu8(e, vH);
+    //     _mm_store_si128(pvE + j, e);
+
+    //     /* Update vF value. */
+    //     vF = _mm_subs_epu8(vF, vGapE);
+    //     vF = _mm_max_epu8(vF, vH);
+
+    //     /* Load the next vH. */
+    //     vH = _mm_load_si128(pvHLoad + j);
+    // }
+
     for (j = 0; LIKELY(j < segLen); ++j) {
-      vH = _mm_adds_epu8(vH, _mm_load_si128(vP + j));
-      vH = _mm_subs_epu8(vH, vBias); /* vH will be always > 0 */
-
-      /* Get max from vH, vE and vF. */
-      e = _mm_load_si128(pvE + j);
-      vH = _mm_max_epu8(vH, e);
-      vH = _mm_max_epu8(vH, vF);
-      vMaxColumn = _mm_max_epu8(vMaxColumn, vH);
-
-      /* Save vH values. */
-      _mm_store_si128(pvHStore + j, vH);
-
-      /* Update vE value. */
-      vH = _mm_subs_epu8(vH, vGapO); /* saturation arithmetic, result >= 0 */
-      e = _mm_subs_epu8(e, vGapE);
-      e = _mm_max_epu8(e, vH);
-      _mm_store_si128(pvE + j, e);
-
-      /* Update vF value. */
-      vF = _mm_subs_epu8(vF, vGapE);
-      vF = _mm_max_epu8(vF, vH);
-
-      /* Load the next vH. */
       vH = _mm_load_si128(pvHLoad + j);
+      __m128i vTemp = _mm_adds_epu8(vH, _mm_load_si128(vP + j));
+      vTemp = _mm_subs_epu8(vTemp, vBias);
+
+      __m128i vNewE = _mm_load_si128(pvE + j);
+      __m128i vNewF = vF;
+
+      __m128i vMax = _mm_max_epu8(vTemp, vNewE);
+      vMax = _mm_max_epu8(vMax, vNewF);
+      vMaxColumn = _mm_max_epu8(vMaxColumn, vMax);
+
+      vNewE = _mm_subs_epu8(vMax, vGapO);
+      vNewE = _mm_max_epu8(vNewE, _mm_subs_epu8(vNewE, vGapE));
+
+      _mm_store_si128(pvE + j, vNewE);
+      _mm_store_si128(pvHStore + j, vMax);
     }
 
-    /* Lazy_F loop: has been revised to disallow adjecent insertion and then
-     * deletion, so don't update E(i, j), learn from SWPS3 */
+    // /* Lazy_F loop: has been revised to disallow adjecent insertion and then
+    //  * deletion, so don't update E(i, j), learn from SWPS3 */
+    // for (k = 0; LIKELY(k < 16); ++k)
+    // {
+    //     vF = _mm_slli_si128(vF, 1);
+    //     for (j = 0; LIKELY(j < segLen); ++j)
+    //     {
+    //         vH = _mm_load_si128(pvHStore + j);
+    //         vH = _mm_max_epu8(vH, vF);
+    //         vMaxColumn = _mm_max_epu8(vMaxColumn, vH); // newly added line
+    //         _mm_store_si128(pvHStore + j, vH);
+    //         vH = _mm_subs_epu8(vH, vGapO);
+    //         vF = _mm_subs_epu8(vF, vGapE);
+    //         vTemp = _mm_subs_epu8(vF, vH);
+    //         vTemp = _mm_cmpeq_epi8(vTemp, vZero);
+    //         if (UNLIKELY(_mm_movemask_epi8(vTemp) == 0xffff))
+    //             goto end;
+    //     }
+    // }
+
     for (k = 0; LIKELY(k < 16); ++k) {
       vF = _mm_slli_si128(vF, 1);
-      for (j = 0; LIKELY(j < segLen); ++j) {
-        vH = _mm_load_si128(pvHStore + j);
-        vH = _mm_max_epu8(vH, vF);
-        vMaxColumn = _mm_max_epu8(vMaxColumn, vH); // newly added line
-        _mm_store_si128(pvHStore + j, vH);
-        vH = _mm_subs_epu8(vH, vGapO);
+      for (j = 0; LIKELY(j < segLen);
+           j += 2) { // Unroll loop to process 2 elements at a time
+        __m128i vH1 = _mm_load_si128(pvHStore + j);
+        __m128i vH2 = _mm_load_si128(pvHStore + j + 1);
+
+        vH1 = _mm_max_epu8(vH1, vF);
+        vH2 = _mm_max_epu8(vH2, vF);
+
+        vMaxColumn = _mm_max_epu8(vMaxColumn, vH1);
+        vMaxColumn = _mm_max_epu8(vMaxColumn, vH2);
+
         vF = _mm_subs_epu8(vF, vGapE);
-        vTemp = _mm_subs_epu8(vF, vH);
-        vTemp = _mm_cmpeq_epi8(vTemp, vZero);
-        if (UNLIKELY(_mm_movemask_epi8(vTemp) == 0xffff))
-          goto end;
+
+        _mm_store_si128(pvHStore + j, vH1);
+        _mm_store_si128(pvHStore + j + 1, vH2);
       }
     }
 
@@ -356,15 +396,51 @@ static alignment_end *sw_sse2_byte(
       break;
   }
 
-  /* Trace the alignment ending position on read. */
-  uint8_t *t = (uint8_t *)pvHmax;
-  int32_t column_len = segLen * 16;
-  for (i = 0; LIKELY(i < column_len); ++i, ++t) {
-    int32_t temp;
-    if (*t == max) {
-      temp = i / 16 + i % 16 * segLen;
-      if (temp < end_read)
-        end_read = temp;
+  // /* Trace the alignment ending position on read. */
+  // uint8_t *t = (uint8_t *)pvHmax;
+  // int32_t column_len = segLen * 16;
+  // for (i = 0; LIKELY(i < column_len); ++i, ++t)
+  // {
+  //     int32_t temp;
+  //     if (*t == max)
+  //     {
+  //         temp = i / 16 + i % 16 * segLen;
+  //         if (temp < end_read)
+  //             end_read = temp;
+  //     }
+  // }
+
+  {
+    __m128i vMax = _mm_set1_epi8((char)max); // Vector of all 'max' bytes
+    int32_t column_len = segLen * 16;
+    int32_t i;
+
+    // Process 16 elements at a time
+    for (i = 0; i <= column_len - 16; i += 16) {
+      __m128i vData = _mm_loadu_si128((__m128i *)((uint8_t *)pvHmax + i));
+      __m128i vCmp = _mm_cmpeq_epi8(vData, vMax); // Compare all 16 bytes
+      int mask = _mm_movemask_epi8(vCmp);         // Create a bitmask of results
+
+      // If mask != 0, there are matches
+      while (mask) {
+        int bitpos =
+            __builtin_ctz(mask); // position of least significant set bit
+        int idx = i + bitpos;
+        int32_t temp = (idx / 16) + (idx % 16) * segLen;
+        if (temp < end_read)
+          end_read = temp;
+        mask &= (mask - 1); // Clear the found bit
+      }
+    }
+
+    // Handle remaining elements if column_len is not a multiple of 16
+    for (; i < column_len; ++i) {
+      uint8_t val = ((uint8_t *)pvHmax)[i];
+      if (val == max) {
+        int32_t temp = (i / 16) + (i % 16) * segLen;
+        if (temp < end_read)
+          end_read = temp;
+      }
     }
   }
 
