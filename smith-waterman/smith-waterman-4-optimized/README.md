@@ -4,6 +4,12 @@ make
 
 The library uses ssw.c, while our optimizations are in ssw_opmitized.c
 
+# Run benchmarking to compare optimized version to github version
+
+```
+bash benchmark.sh
+```
+
 # Running base github version for dna
 
 ```
@@ -40,10 +46,4 @@ The library uses ssw.c, while our optimizations are in ssw_opmitized.c
 ./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads100.fa
 ./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads1000.fa
 ./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads10000.fa
-```
-
-# Run benchmarking to compare optimized version to github version
-
-```
-bash benchmark.sh
 ```
