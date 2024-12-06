@@ -18,7 +18,7 @@ make
 # Running for protein
 
 ```
-./ssw_test reference.fa balifam100.fa
-./ssw_test reference.fa balifam1000.fa
-./ssw_test reference.fa balifam10000.fa
+./ssw_test ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads100.fa
+./ssw_test ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads1000.fa
+./ssw_test ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads10000.fa
 ```

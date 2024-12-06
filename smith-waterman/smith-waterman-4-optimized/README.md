@@ -16,9 +16,9 @@ make
 # Running github version for protein
 
 ```
-./ssw_test_1 reference.fa balifam100.fa
-./ssw_test_1 reference.fa balifam1000.fa
-./ssw_test_1 reference.fa balifam10000.fa
+./ssw_test_1 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads100.fa
+./ssw_test_1 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads1000.fa
+./ssw_test_1 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads10000.fa
 ```
 
 # Running our optimized version for dna
@@ -35,9 +35,9 @@ make
 # Running our optimized version for protein
 
 ```
-./ssw_test_2 reference.fa balifam100.fa
-./ssw_test_2 reference.fa balifam1000.fa
-./ssw_test_2 reference.fa balifam10000.fa
+./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads100.fa
+./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads1000.fa
+./ssw_test_2 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads10000.fa
 ```
 
 # Run benchmarking to compare optimized version to github version
