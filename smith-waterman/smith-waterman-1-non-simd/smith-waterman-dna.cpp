@@ -32,12 +32,10 @@ string readFastaFile(const string &filename)
 
         if (line[0] == '>')
         {
-            // Skip header line
             headerSkipped = true;
         }
         else
         {
-            // Append sequence to string
             sequence += line;
         }
     }

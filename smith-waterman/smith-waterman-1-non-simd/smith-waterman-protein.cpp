@@ -36,7 +36,6 @@ void readFASTA(const string &filename, vector<string> &sequences)
         }
         else
         {
-            // Append line to the current sequence
             current_sequence += line;
         }
     }
