@@ -1,3 +1,5 @@
+Code taken from https://github.com/mengyao/complete-striped-smith-waterman-library
+
 # Compiling
 
 make
