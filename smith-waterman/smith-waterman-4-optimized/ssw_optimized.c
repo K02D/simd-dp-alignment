@@ -411,29 +411,23 @@ static alignment_end *sw_sse2_byte(
   // }
 
   {
-    __m128i vMax = _mm_set1_epi8((char)max); // Vector of all 'max' bytes
+    __m128i vMax = _mm_set1_epi8((char)max);
     int32_t column_len = segLen * 16;
     int32_t i;
-
-    // Process 16 elements at a time
     for (i = 0; i <= column_len - 16; i += 16) {
       __m128i vData = _mm_loadu_si128((__m128i *)((uint8_t *)pvHmax + i));
-      __m128i vCmp = _mm_cmpeq_epi8(vData, vMax); // Compare all 16 bytes
-      int mask = _mm_movemask_epi8(vCmp);         // Create a bitmask of results
-
-      // If mask != 0, there are matches
+      __m128i vCmp = _mm_cmpeq_epi8(vData, vMax); 
+      int mask = _mm_movemask_epi8(vCmp);         
       while (mask) {
         int bitpos =
-            __builtin_ctz(mask); // position of least significant set bit
+            __builtin_ctz(mask);
         int idx = i + bitpos;
         int32_t temp = (idx / 16) + (idx % 16) * segLen;
         if (temp < end_read)
           end_read = temp;
-        mask &= (mask - 1); // Clear the found bit
+        mask &= (mask - 1); 
       }
     }
-
-    // Handle remaining elements if column_len is not a multiple of 16
     for (; i < column_len; ++i) {
       uint8_t val = ((uint8_t *)pvHmax)[i];
       if (val == max) {
