@@ -2,18 +2,20 @@
 
 make
 
-# Running github version for dna
+The library uses ssw.c, while our optimizations are in ssw_opmitized.c
+
+# Running base github version for dna
 
 ```
-./ssw_test_1 1k.fa query.fa
-./ssw_test_1 10k.fa query.fa
-./ssw_test_1 100k.fa query.fa
-./ssw_test_1 1M.fa query.fa
-./ssw_test_1 10M.fa query.fa
-./ssw_test_1 Homo_sapiens.GRCh38.dna_rm.chromosome.22.fa query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/1k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/10k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/100k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/1M.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/10M.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_1 ../smith-waterman-test-data/dna-input/Homo_sapiens.GRCh38.dna_rm.chromosome.22.fa ../smith-waterman-test-data/dna-input/query.fa
 ```
 
-# Running github version for protein
+# Running base github version for protein
 
 ```
 ./ssw_test_1 ../smith-waterman-test-data/protein-input/protein-ref.fa ../smith-waterman-test-data/protein-input/protein-reads100.fa
@@ -24,12 +26,12 @@ make
 # Running our optimized version for dna
 
 ```
-./ssw_test_2 1k.fa query.fa
-./ssw_test_2 10k.fa query.fa
-./ssw_test_2 100k.fa query.fa
-./ssw_test_2 1M.fa query.fa
-./ssw_test_2 10M.fa query.fa
-./ssw_test_2 Homo_sapiens.GRCh38.dna_rm.chromosome.22.fa query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/1k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/10k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/100k.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/1M.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/10M.fa ../smith-waterman-test-data/dna-input/query.fa
+./ssw_test_2 ../smith-waterman-test-data/dna-input/Homo_sapiens.GRCh38.dna_rm.chromosome.22.fa ../smith-waterman-test-data/dna-input/query.fa
 ```
 
 # Running our optimized version for protein

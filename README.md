@@ -15,6 +15,8 @@ smith-waterman/
     └── protein-input/             # Protein sequence data
 
 wavefront-alignment/               # Wavefront algorithm implementations
+├── dna-input/                     # DNA sequence data
+├── dna-input-mutated/             # same as dna-input with some rate of DNA mutation on each file
 ```
 
 ## Credit
