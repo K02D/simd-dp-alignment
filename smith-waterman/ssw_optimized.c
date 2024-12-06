@@ -162,7 +162,7 @@ const uint8_t encoded_ops[] = {
 
 /* Generate query profile rearrange query sequence & calculate the weight of
  * match/mismatch. */
-// Optimization 5: SIMD-optimized profile generation
+// Optimization: SIMD-optimized profile generation
 static __m128i *qP_byte_optimized(const int8_t *read_num, const int8_t *mat,
                                   const int32_t readLen, const int32_t n,
                                   uint8_t bias) {
@@ -170,7 +170,6 @@ static __m128i *qP_byte_optimized(const int8_t *read_num, const int8_t *mat,
   const int32_t segLen = (readLen + 15) / 16;
   __m128i *vProfile = (__m128i *)_mm_malloc(n * segLen * sizeof(__m128i), 16);
 
-// Optimization 5.1: Vectorized profile generation
 #pragma omp parallel for schedule(static)
   for (int32_t nt = 0; nt < n; nt++) {
     int8_t *t = (int8_t *)(vProfile + nt * segLen);
